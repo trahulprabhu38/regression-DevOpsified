@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: walmart-sales-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: walmart-sales
+  template:
+    metadata:
+      labels:
+        app: walmart-sales
+    spec:
+      containers:
+      - name: walmart-sales-container
+        image: trahulprabhu38/mlops:v1    
+        ports:
+        - containerPort: 8501
+

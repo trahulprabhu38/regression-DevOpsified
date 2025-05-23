@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: walmart-sales-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: walmart-sales
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8501
+
+
+
+# minikube service walmart-sales-service
+# kubectl apply -f k8s/
