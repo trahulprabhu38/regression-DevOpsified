@@ -21,3 +21,6 @@ __pycache__/
 *.terraform.lock.hcl.backup.lock.backup.backup
 
 
+
+.DS_Store
+
