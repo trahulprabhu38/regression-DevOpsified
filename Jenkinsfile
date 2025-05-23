@@ -2,9 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "trahulprabhu38/mlops:v1"
-        DOCKER_REGISTRY = "https://index.docker.io/v1/"
-        KUBE_CONFIG = credentials('kubeconfig') 
+        AWS_REGION = 'us-east-1'
+        TF_DIR = 'terraform'
     }
 
     stages {
@@ -13,43 +12,57 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Install dependencies') {
+        stage('Terraform Format & Lint') {
             steps {
-                sh 'pip install -r requirements.txt'
-            }
-        }
-        stage('Lint') {
-            steps {
-                sh 'pip install flake8 && flake8 main.py'
-            }
-        }
-        stage('Test') {
-            steps {
-                // Replace with your test command, e.g. pytest
-                sh 'pip install pytest && pytest || echo "No tests yet"'
-            }
-        }
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    dockerImage = docker.build("${DOCKER_IMAGE}")
+                dir("${env.TF_DIR}") {
+                    sh "terraform fmt -check -recursive"
                 }
             }
         }
-        stage('Push Docker Image') {
+        stage('Terraform Init') {
             steps {
-                script {
-                    docker.withRegistry(env.DOCKER_REGISTRY, 'dockerhub') {
-                        dockerImage.push()
+                dir("${env.TF_DIR}") {
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins-creds']]) {
+                        sh '''
+                            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                            terraform init -input=false
+                        '''
                     }
                 }
             }
         }
-        stage('Deploy to Kubernetes') {
+        stage('Terraform Validate') {
             steps {
-                withEnv(["KUBECONFIG=${env.KUBE_CONFIG}"]) {
-                    sh 'kubectl version'
-                    sh 'kubectl apply -f k8s-deployment.yaml'
+                dir("${env.TF_DIR}") {
+                    sh "terraform validate"
+                }
+            }
+        }
+        stage('Terraform Plan') {
+            steps {
+                dir("${env.TF_DIR}") {
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins-creds']]) {
+                        sh '''
+                            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                            terraform plan -out=tfplan
+                        '''
+                    }
+                }
+            }
+        }
+        stage('Terraform Apply') {
+            steps {
+                input "Approve to apply Terraform changes?"
+                dir("${env.TF_DIR}") {
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-jenkins-creds']]) {
+                        sh '''
+                            export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                            export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                            terraform apply -auto-approve tfplan
+                        '''
+                    }
                 }
             }
         }
@@ -59,10 +72,10 @@ pipeline {
             cleanWs()
         }
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Terraform pipeline completed successfully!'
         }
         failure {
-            echo 'Pipeline failed.'
+            echo 'Terraform pipeline failed.'
         }
     }
 }

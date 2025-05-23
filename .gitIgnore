@@ -1,4 +1,5 @@
 venv/
+
 __pycache__/
 *.pyc
 *.pyo
@@ -6,12 +7,12 @@ __pycache__/
 *.pyw
 *.pyz
 
-*.tfstate
-*.tfstate.backup
-*.tfplan
-*.tfvars
-*.tfvars.json
-*.tfvars.json.backup
+# *.tfstate
+# *.tfstate.backup
+# *.tfplan
+# *.tfvars
+# *.tfvars.json
+# *.tfvars.json.backup
 
 *.terraform
 *.terraform.lock.hcl
@@ -24,3 +25,25 @@ __pycache__/
 
 .DS_Store
 
+# Ignore all terraform state files everywhere
+# *.tfstate
+# *.tfstate.backup
+
+# Ignore terraform crash logs
+crash.log
+
+# Ignore terraform local directories
+**/.terraform/*
+
+# Ignore override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore tfvars files which may have secrets
+*.tfvars
+
+# Explicitly ignore bootstrap tfstate files
+# bootstrap/terraform.tfstate
+# bootstrap/terraform.tfstate.backup
