@@ -1,7 +1,5 @@
 pipeline {
     agent any
-    AWS_CREDENTIALS = credentials('aws-key')
-
 
     stages {
         stage('Checkout') {
@@ -23,11 +21,9 @@ pipeline {
                 dir('terraform') {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: 'aws-jenkins-creds'
+                        credentialsId: 'aws-key'
                     ]]) {
-                        sh '''
-                            terraform init -input=false
-                        '''
+                        sh 'terraform init -input=false'
                     }
                 }
             }
@@ -46,11 +42,9 @@ pipeline {
                 dir('terraform') {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: 'aws-jenkins-creds'
+                        credentialsId: 'aws-key'
                     ]]) {
-                        sh '''
-                            terraform plan -out=tfplan
-                        '''
+                        sh 'terraform plan -out=tfplan'
                     }
                 }
             }
@@ -62,11 +56,9 @@ pipeline {
                 dir('terraform') {
                     withCredentials([[
                         $class: 'AmazonWebServicesCredentialsBinding',
-                        credentialsId: 'aws-jenkins-creds'
+                        credentialsId: 'aws-key'
                     ]]) {
-                        sh '''
-                            terraform apply -auto-approve tfplan
-                        '''
+                        sh 'terraform apply -auto-approve tfplan'
                     }
                 }
             }
