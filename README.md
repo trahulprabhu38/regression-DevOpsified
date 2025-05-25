@@ -1,4 +1,4 @@
-# 🚀 Walmart Sales Prediction - MLOps Project
+# 🚀 Walmart Sales Prediction - regression-DevOpsified
 
 ![CI/CD](https://img.shields.io/badge/CI%2FCD-Jenkins-blue?logo=jenkins)
 ![Docker](https://img.shields.io/badge/Container-Docker-blue?logo=docker)
